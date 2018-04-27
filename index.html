@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>新增题目</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <script src="js/jquery.js"></script>
+</head>
+<body>
+<div style="text-align:center;margin:50px">
+    <input type="file" id="question" name="file" onchange="previewQuestion()">
+    <div id="imglist1" class="imglist"></div>
+</div>
+<hr>
+<div style="text-align:center;margin:50px">
+    <input type="file" id="options" name="file" multiple="multiple" onchange="previewOptions()">
+    <div id="imglist" class="imglist"></div>
+    请输入正确答案序号:<input type="text" id="answer" name="answer" placeholder="请输入正确答案序号">
+    <button onclick="uploadQuestion()">上传选项</button>
+</div>
+</body>
+<script>
+    //预览题目
+    function previewQuestion() {
+        //预览题目图片
+        var file = $('#question')[0].files[0];
+        var reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (e){
+            var html = '<div class="imgdiv"><img src='+e.target.result+' class="img"></div>';
+            $("#imglist1").append(html);
+        }
+    }
+    //预览选项
+    function previewOptions() {
+        //预览选项图片
+        var files = $('#options')[0].files;
+        for(i=0;i<files.length;i++){
+            var reader = new FileReader();
+            reader.readAsDataURL(files[i]);
+            reader.onload = function (e){
+                var html = '<div class="imgdiv"><img src='+e.target.result+' class="img"></div>';
+                $("#imglist").append(html);
+            }
+        }
+
+    }
+    var questionRandomId = '';
+    //上传选项
+    function uploadData(){
+        var file = $('#options')[0].files;
+        var formData = new FormData();
+        var answer = $.trim($("#answer").val());
+        formData.append("answer",answer);
+        formData.append("questionId",questionRandomId);
+        //追加文件数据
+        for(i=0;i<file.length;i++){
+            formData.append("file["+i+"]", file[i]);
+        }
+
+        $.ajax({
+            url: 'xhr2.php',
+            type: 'POST',
+            cache: false,
+            data: formData,
+            processData: false,
+            contentType: false
+        }).done(function(res) {console.log(res)}).fail(function(res) {});
+    }
+    //上传题目
+    function uploadQuestion(){
+        var file = $('#question')[0].files[0];
+        var formData = new FormData();
+        formData.append("file",file);
+
+        $.ajax({
+            url: 'xhr2.php',
+            type: 'POST',
+            cache: false,
+            data: formData,
+            processData: false,
+            contentType: false
+        }).done(function(res) {
+            questionRandomId = res;
+            //获取到题目id，开始上传选项
+            uploadData();
+            //console.log(questionRandomId)
+        }).fail(function(res) {
+            console.log(res);
+        });
+    }
+</script>
+
+</html>
